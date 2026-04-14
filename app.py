@@ -40,8 +40,15 @@ st.markdown(f"""
   [data-testid="stAppViewContainer"] {{ background: {C_BG_SECTION}; }}
 
   /* Sidebar — white background, black text */
-  [data-testid="stSidebar"] {{ background: {C_BG}; border-right: 1px solid {C_BORDER}; }}
+  [data-testid="stSidebar"] {{ background: {C_BG} !important; border-right: 1px solid {C_BORDER}; }}
   [data-testid="stSidebar"] hr {{ border-color: {C_BORDER}; }}
+  [data-testid="stSidebar"] p,
+  [data-testid="stSidebar"] label,
+  [data-testid="stSidebar"] span,
+  [data-testid="stSidebar"] div,
+  [data-testid="stSidebar"] small,
+  [data-testid="stSidebar"] .stMarkdown,
+  [data-testid="stSidebar"] .stCaption {{ color: {C_TEXT} !important; }}
 
   h1, h2, h3 {{ color: {C_TEXT} !important; font-family: 'Inter', sans-serif !important; }}
 
