@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="BeeMyHost · Dashboards de ocupación e ingresos." />
+  <title>BeeMyHost — Dashboards</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    /* ── Reset & base ─────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --color-primary:      #FF385C;
+      --color-primary-hover:#E31C5F;
+      --color-bg:           #FFFFFF;
+      --color-bg-section:   #F7F7F7;
+      --color-text:         #222222;
+      --color-text-secondary:#717171;
+      --color-border:       #EBEBEB;
+      --font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    body {
+      font-family: var(--font-family);
+      background: var(--color-bg);
+      color: var(--color-text);
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Header ───────────────────────────────────── */
+    .header {
+      background: var(--color-bg);
+      padding: 18px 32px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .header-logo img {
+      height: 34px;
+      width: auto;
+      display: block;
+    }
+
+    .header-link {
+      position: absolute;
+      right: 32px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--color-text-secondary);
+      text-decoration: none;
+      transition: color .15s;
+    }
+    .header-link:hover { color: var(--color-primary); }
+
+    /* ── Hero ─────────────────────────────────────── */
+    .hero {
+      height: 220px;
+      background: linear-gradient(150deg, #1a1a1a 0%, #2e2e2e 60%, #FF385C22 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 0 24px;
+    }
+    .hero-title {
+      font-size: 32px;
+      font-weight: 700;
+      color: #fff;
+      letter-spacing: -.5px;
+      margin-bottom: 8px;
+    }
+    .hero-subtitle {
+      font-size: 15px;
+      color: rgba(255,255,255,.85);
+      max-width: 480px;
+      margin: 0 auto;
+    }
+
+    /* ── Nav tabs ─────────────────────────────────── */
+    .tabs-bar {
+      background: var(--color-bg-section);
+      border-bottom: 1px solid var(--color-border);
+      padding: 0 32px;
+      display: flex;
+      gap: 4px;
+    }
+    .tab-btn {
+      background: none;
+      border: none;
+      padding: 14px 18px;
+      font-family: var(--font-family);
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--color-text-secondary);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+      transition: color .15s, border-color .15s;
+    }
+    .tab-btn.active,
+    .tab-btn:hover { color: var(--color-text); }
+    .tab-btn.active { border-bottom-color: var(--color-primary); }
+
+    /* ── Dashboard iframe ─────────────────────────── */
+    .dashboard-container {
+      background: var(--color-bg-section);
+      min-height: calc(100vh - 340px);
+      padding: 24px 32px 48px;
+    }
+
+    .dashboard-frame {
+      width: 100%;
+      height: calc(100vh - 180px);
+      min-height: 700px;
+      border: 1px solid var(--color-border);
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      background: var(--color-bg);
+      display: block;
+    }
+
+    /* ── Footer ───────────────────────────────────── */
+    .footer {
+      background: var(--color-bg-section);
+      border-top: 1px solid var(--color-border);
+      padding: 24px;
+      text-align: center;
+      font-size: 13px;
+      color: var(--color-text-secondary);
+    }
+    .footer a {
+      color: var(--color-primary);
+      text-decoration: none;
+      font-weight: 500;
+    }
+    .footer a:hover { text-decoration: underline; }
+
+    /* ── Responsive ───────────────────────────────── */
+    @media (max-width: 640px) {
+      .header { padding: 14px 16px; }
+      .header-link { display: none; }
+      .hero { height: 170px; }
+      .hero-title { font-size: 22px; }
+      .tabs-bar { padding: 0 16px; overflow-x: auto; }
+      .dashboard-container { padding: 16px 16px 40px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header class="header">
+    <a href="https://beemyhost.com.ar" target="_blank" rel="noopener noreferrer" class="header-logo">
+      <img src="https://beemyhost.com.ar/images/beemyhost-logo.webp" alt="BeeMyHost" />
+    </a>
+    <a href="https://beemyhost.com.ar" target="_blank" rel="noopener noreferrer" class="header-link">
+      beemyhost.com.ar →
+    </a>
+  </header>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div>
+      <h1 class="hero-title">Dashboards</h1>
+      <p class="hero-subtitle">Métricas de ocupación e ingresos · actualización diaria desde Google Sheets</p>
+    </div>
+  </section>
+
+  <!-- NAV TABS -->
+  <nav class="tabs-bar">
+    <button class="tab-btn active" onclick="switchTab(this, 'ocupacion')">📊 Ocupación</button>
+    <button class="tab-btn"        onclick="switchTab(this, 'ingresos')">💰 Ingresos</button>
+  </nav>
+
+  <!-- DASHBOARD -->
+  <div class="dashboard-container">
+    <iframe
+      id="frame-ocupacion"
+      class="dashboard-frame"
+      src="http://localhost:8501"
+      title="Dashboard de ocupación"
+      frameborder="0"
+      allow="fullscreen"
+    ></iframe>
+
+    <iframe
+      id="frame-ingresos"
+      class="dashboard-frame"
+      src="about:blank"
+      title="Dashboard de ingresos"
+      frameborder="0"
+      style="display:none"
+    ></iframe>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <p>
+      &copy; 2025 <a href="https://beemyhost.com.ar" target="_blank" rel="noopener noreferrer">BeeMyHost</a>
+      &nbsp;·&nbsp; Uso interno
+    </p>
+  </footer>
+
+  <script>
+    function switchTab(btn, tab) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      document.querySelectorAll('.dashboard-frame').forEach(f => f.style.display = 'none');
+      document.getElementById('frame-' + tab).style.display = 'block';
+    }
+  </script>
+
+</body>
+</html>
