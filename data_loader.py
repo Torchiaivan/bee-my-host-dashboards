@@ -117,6 +117,10 @@ def build_master(min_year: int = 2025) -> pd.DataFrame:
         validate="many_to_one",
     ).drop(columns=["depto_key"])
 
+    # Normalize responsable: strip whitespace + title case to avoid duplicates
+    if "responsable" in master.columns:
+        master["responsable"] = master["responsable"].astype(str).str.strip().str.title()
+
     return master
 
 
