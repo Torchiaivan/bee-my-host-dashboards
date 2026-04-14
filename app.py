@@ -186,7 +186,7 @@ else:
     fig1.update_layout(
         xaxis=dict(title="% Ocupación", ticksuffix="%", range=[0, 118],
                    gridcolor=C_BORDER, zerolinecolor=C_BORDER),
-        yaxis=dict(title="", tickfont=dict(size=12)),
+        yaxis=dict(title="", tickfont=dict(size=12, color=C_TEXT)),
         **_chart_layout(max(420, len(df_p) * 26)),
     )
     st.plotly_chart(fig1, use_container_width=True)
@@ -234,7 +234,7 @@ else:
     fig2.update_layout(
         xaxis=dict(title="Δ puntos porcentuales", ticksuffix="pp",
                    zeroline=True, zerolinecolor=C_TEXT_SEC, gridcolor=C_BORDER),
-        yaxis=dict(title="", tickfont=dict(size=12)),
+        yaxis=dict(title="", tickfont=dict(size=12, color=C_TEXT)),
         **_chart_layout(max(420, len(df_c) * 26)),
     )
     st.plotly_chart(fig2, use_container_width=True)
@@ -263,7 +263,7 @@ if not df_resp.empty:
     fig3.update_layout(
         xaxis=dict(title="% Ocupación promedio", ticksuffix="%",
                    range=[0, 118], gridcolor=C_BORDER),
-        yaxis=dict(title=""),
+        yaxis=dict(title="", tickfont=dict(size=12, color=C_TEXT)),
         **_chart_layout(max(300, len(df_r) * 52)),
     )
     st.plotly_chart(fig3, use_container_width=True)
@@ -276,7 +276,7 @@ if not df_resp.empty:
 st.markdown('<div class="section-title">Detalle por propiedad</div>', unsafe_allow_html=True)
 
 if not df_mes.empty:
-    df_t = df_mes[["nombre", "responsable", "barrio",
+    df_t = df_mes[["nombre", "responsable",
                    "dias_ocupados", "dias_mes", "pct_ocupacion"]].copy()
     df_t["pct_ocupacion"] = (df_t["pct_ocupacion"] * 100).round(1)
     df_t = df_t.sort_values("pct_ocupacion", ascending=False).reset_index(drop=True)
@@ -288,7 +288,6 @@ if not df_mes.empty:
         column_config={
             "nombre":        st.column_config.TextColumn("Propiedad"),
             "responsable":   st.column_config.TextColumn("Responsable"),
-            "barrio":        st.column_config.TextColumn("Barrio"),
             "dias_ocupados": st.column_config.NumberColumn("Días ocupados"),
             "dias_mes":      st.column_config.NumberColumn("Días mes"),
             "pct_ocupacion": st.column_config.ProgressColumn(
