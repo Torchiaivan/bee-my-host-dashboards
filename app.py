@@ -411,17 +411,18 @@ with tab_ind:
     n_ri        = df_ri["nombre"].nunique()
     n_excelente = int((df_ri["performance"] == "Excelente").sum())
     n_revisar   = int((df_ri["performance"] == "Revisar").sum())
-    total_bono  = df_ri["bono_total"].sum()
+    total_bono       = df_ri["bono_total"].sum()
     bono_base_total  = df_ri["bono_base"].sum()
     bono_extra_total = df_ri["bono_extra"].sum()
+    sueldo_base      = n_ri * 14_000
+    total_mes        = sueldo_base + total_bono
 
-    c1, c2, c3, c4, c5 = st.columns(5)
+    c1, c2, c3, c4 = st.columns(4)
     for col, val, label in [
-        (c1, f"{avg_ri*100:.1f}%",          "Ocupación promedio"),
-        (c2, str(n_ri),                      "Propiedades a cargo"),
-        (c3, str(n_excelente),               "Excelente (≥ 70%)"),
-        (c4, str(n_revisar),                 "Revisar (< 40%)"),
-        (c5, f"${total_bono:,.0f}",          "Bono estimado del mes"),
+        (c1, f"{avg_ri*100:.1f}%",   "Ocupación promedio"),
+        (c2, str(n_ri),              "Propiedades a cargo"),
+        (c3, str(n_excelente),       "Excelente (≥ 70%)"),
+        (c4, str(n_revisar),         "Revisar (< 40%)"),
     ]:
         with col:
             st.markdown(f"""
@@ -431,6 +432,20 @@ with tab_ind:
             </div>""", unsafe_allow_html=True)
 
     st.markdown("<br>", unsafe_allow_html=True)
+
+    # ── Resumen de cobro del mes ───────────────────────────────────────────────
+    ca, cb, cc = st.columns(3)
+    for col, val, label in [
+        (ca, f"${sueldo_base:,.0f}", f"Sueldo base ({n_ri} deptos × $14.000)"),
+        (cb, f"${total_bono:,.0f}",  "Bono por ocupación"),
+        (cc, f"${total_mes:,.0f}",   "Total a cobrar en el mes"),
+    ]:
+        with col:
+            st.markdown(f"""
+            <div class="bmh-card">
+              <div class="bmh-val">{val}</div>
+              <div class="bmh-label">{label}</div>
+            </div>""", unsafe_allow_html=True)
 
     if df_ri.empty:
         st.info("Sin reservas para este responsable en el período seleccionado.")
