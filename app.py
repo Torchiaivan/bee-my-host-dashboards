@@ -138,6 +138,12 @@ def _perf_label(pct: float) -> str:
     if pct >= 0.40: return "Mejorar"
     return "Revisar"
 
+def _calc_bono(pct: float) -> tuple[float, float]:
+    """Returns (bono_base, bono_extra) for a single property."""
+    bono_base  = 6000.0 if pct >= 0.70 else 0.0
+    bono_extra = max(pct - 0.70, 0) * 33334.0
+    return bono_base, bono_extra
+
 def _chart_layout(height: int) -> dict:
     return dict(
         height=height,
@@ -390,25 +396,32 @@ with tab_ind:
     else:
         df_ri_ant = pd.DataFrame()
 
-    # Add performance category
+    # Add performance category and bonus columns
     df_ri["performance"] = df_ri["pct_ocupacion"].apply(_perf_label)
+    df_ri[["bono_base", "bono_extra"]] = df_ri["pct_ocupacion"].apply(
+        lambda p: pd.Series(_calc_bono(p))
+    )
+    df_ri["bono_total"] = df_ri["bono_base"] + df_ri["bono_extra"]
 
     # ── Header ────────────────────────────────────────────────────────────────
     st.markdown(f"## Reporte · {resp_sel} · {month_name} {year}")
 
     # ── KPIs ──────────────────────────────────────────────────────────────────
-    avg_ri     = df_ri["pct_ocupacion"].mean() if not df_ri.empty else 0
-    n_ri       = df_ri["nombre"].nunique()
-    n_ri_70    = int((df_ri["pct_ocupacion"] >= 0.70).sum())
+    avg_ri      = df_ri["pct_ocupacion"].mean() if not df_ri.empty else 0
+    n_ri        = df_ri["nombre"].nunique()
     n_excelente = int((df_ri["performance"] == "Excelente").sum())
     n_revisar   = int((df_ri["performance"] == "Revisar").sum())
+    total_bono  = df_ri["bono_total"].sum()
+    bono_base_total  = df_ri["bono_base"].sum()
+    bono_extra_total = df_ri["bono_extra"].sum()
 
-    c1, c2, c3, c4 = st.columns(4)
+    c1, c2, c3, c4, c5 = st.columns(5)
     for col, val, label in [
-        (c1, f"{avg_ri*100:.1f}%",    "Ocupación promedio"),
-        (c2, str(n_ri),               "Propiedades a cargo"),
-        (c3, str(n_excelente),        "Excelente (≥ 70%)"),
-        (c4, str(n_revisar),          "Revisar (< 40%)"),
+        (c1, f"{avg_ri*100:.1f}%",          "Ocupación promedio"),
+        (c2, str(n_ri),                      "Propiedades a cargo"),
+        (c3, str(n_excelente),               "Excelente (≥ 70%)"),
+        (c4, str(n_revisar),                 "Revisar (< 40%)"),
+        (c5, f"${total_bono:,.0f}",          "Bono estimado del mes"),
     ]:
         with col:
             st.markdown(f"""
@@ -489,16 +502,30 @@ with tab_ind:
             )
             st.plotly_chart(fig_rc, use_container_width=True)
 
-        # ── Tabla con categoría de performance ────────────────────────────────
+        # ── Bono desglose ──────────────────────────────────────────────────────
         st.markdown('<div class="section-title">Detalle por propiedad</div>', unsafe_allow_html=True)
 
+        # Bono summary line
+        st.markdown(
+            f"**Bono del mes:** "
+            f"Base (70%) `${bono_base_total:,.0f}` + "
+            f"Extra (pts sobre 70%) `${bono_extra_total:,.0f}` = "
+            f"**Total `${total_bono:,.0f}`**"
+        )
+
         PERF_ORDER = {"Excelente": 0, "Ajustar": 1, "Mejorar": 2, "Revisar": 3}
-        df_ri_tbl = df_ri[["nombre", "dias_ocupados", "dias_mes", "pct_ocupacion", "performance"]].copy()
+        df_ri_tbl = df_ri[[
+            "nombre", "dias_ocupados", "dias_mes", "pct_ocupacion",
+            "performance", "bono_base", "bono_extra", "bono_total"
+        ]].copy()
         df_ri_tbl["pct_pct"] = (df_ri_tbl["pct_ocupacion"] * 100).round(1)
-        df_ri_tbl["_sort"] = df_ri_tbl["performance"].map(PERF_ORDER)
+        df_ri_tbl["_sort"]   = df_ri_tbl["performance"].map(PERF_ORDER)
         df_ri_tbl = df_ri_tbl.sort_values(["_sort", "pct_pct"], ascending=[True, False]).reset_index(drop=True)
         df_ri_tbl = df_ri_tbl.drop(columns=["_sort", "pct_ocupacion"])
-        df_ri_tbl.columns = ["Propiedad", "Días ocupados", "Días mes", "Ocupación (%)", "Performance"]
+        df_ri_tbl.columns = [
+            "Propiedad", "Días ocupados", "Días mes",
+            "Performance", "Bono base ($)", "Bono extra ($)", "Bono total ($)", "Ocupación (%)"
+        ]
 
         st.dataframe(
             df_ri_tbl,
@@ -508,9 +535,12 @@ with tab_ind:
                 "Propiedad":      st.column_config.TextColumn("Propiedad"),
                 "Días ocupados":  st.column_config.NumberColumn("Días ocupados"),
                 "Días mes":       st.column_config.NumberColumn("Días mes"),
+                "Performance":    st.column_config.TextColumn("Performance"),
+                "Bono base ($)":  st.column_config.NumberColumn("Bono base ($)",  format="$%.0f"),
+                "Bono extra ($)": st.column_config.NumberColumn("Bono extra ($)", format="$%.0f"),
+                "Bono total ($)": st.column_config.NumberColumn("Bono total ($)", format="$%.0f"),
                 "Ocupación (%)":  st.column_config.ProgressColumn(
                     "Ocupación (%)", min_value=0, max_value=100, format="%.1f%%"
                 ),
-                "Performance":    st.column_config.TextColumn("Performance"),
             },
         )
