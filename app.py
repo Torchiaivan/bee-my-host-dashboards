@@ -63,11 +63,10 @@ st.markdown(f"""
   [data-testid="stSidebar"] [data-baseweb="select"] svg {{
     fill: {C_TEXT} !important;
   }}
-  [data-testid="stSidebar"] button[kind="secondary"],
-  [data-testid="stSidebar"] [data-testid="stBaseButton-secondary"] {{
-    background-color: {C_TEXT} !important;
-    color: {C_BG} !important;
-    border: none !important;
+  [data-testid="stSidebar"] button {{
+    background-color: {C_BG} !important;
+    color: {C_TEXT} !important;
+    border: 1px solid {C_BORDER} !important;
   }}
 
   h1, h2, h3 {{ color: {C_TEXT} !important; font-family: 'Inter', sans-serif !important; }}
