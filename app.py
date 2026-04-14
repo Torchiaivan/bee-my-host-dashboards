@@ -38,10 +38,28 @@ st.markdown(f"""
 
   html, body, [class*="css"] {{ font-family: 'Inter', sans-serif !important; }}
   [data-testid="stAppViewContainer"] {{ background: {C_BG_SECTION}; }}
-  [data-testid="stSidebar"]          {{ background: #1a1a1a; border-right: none; }}
-  [data-testid="stSidebar"] *        {{ color: #f5f5f5 !important; }}
-  [data-testid="stSidebar"] hr       {{ border-color: #333333; }}
-  h1, h2, h3                         {{ color: {C_TEXT} !important; font-family: 'Inter', sans-serif !important; }}
+
+  /* Sidebar — white background, black text */
+  [data-testid="stSidebar"] {{ background: {C_BG}; border-right: 1px solid {C_BORDER}; }}
+  [data-testid="stSidebar"] hr {{ border-color: {C_BORDER}; }}
+
+  h1, h2, h3 {{ color: {C_TEXT} !important; font-family: 'Inter', sans-serif !important; }}
+
+  /* Tabs — always visible in dark text / red when active */
+  .stTabs [data-baseweb="tab-list"] {{ background: transparent; gap: 4px; }}
+  .stTabs [data-baseweb="tab"] {{
+    color: {C_TEXT} !important;
+    font-weight: 600;
+    font-size: 0.95rem;
+    background: transparent;
+    border-bottom: 3px solid transparent;
+  }}
+  .stTabs [aria-selected="true"] {{
+    color: {C_PRIMARY} !important;
+    border-bottom: 3px solid {C_PRIMARY} !important;
+    background: transparent !important;
+  }}
+  .stTabs [data-baseweb="tab-highlight"] {{ background: {C_PRIMARY} !important; }}
 
   .bmh-card {{
     background: {C_BG};
@@ -62,6 +80,13 @@ st.markdown(f"""
     margin: 32px 0 14px; padding-bottom: 6px;
     border-bottom: 2px solid {C_PRIMARY}; display: inline-block;
   }}
+
+  /* Performance badge pills */
+  .perf-excelente {{ background:#dcfce7; color:#15803d; border-radius:6px; padding:2px 10px; font-size:0.8rem; font-weight:600; }}
+  .perf-ajustar   {{ background:#fef9c3; color:#a16207; border-radius:6px; padding:2px 10px; font-size:0.8rem; font-weight:600; }}
+  .perf-mejorar   {{ background:#ffedd5; color:#c2410c; border-radius:6px; padding:2px 10px; font-size:0.8rem; font-weight:600; }}
+  .perf-revisar   {{ background:#fee2e2; color:#b91c1c; border-radius:6px; padding:2px 10px; font-size:0.8rem; font-weight:600; }}
+
   .stDataFrame {{ border-radius: 10px; overflow: hidden; }}
 </style>
 """, unsafe_allow_html=True)
@@ -76,13 +101,19 @@ def _delta_html(val: float) -> str:
 
 def _occ_color(pct: float) -> str:
     if pct >= 0.70: return C_GREEN
-    if pct >= 0.40: return C_AMBER
+    if pct >= 0.50: return C_AMBER
     return C_RED_SOFT
+
+def _perf_label(pct: float) -> str:
+    if pct >= 0.70: return "Excelente"
+    if pct >= 0.50: return "Ajustar"
+    if pct >= 0.40: return "Mejorar"
+    return "Revisar"
 
 def _chart_layout(height: int) -> dict:
     return dict(
         height=height,
-        margin=dict(l=0, r=70, t=10, b=40),
+        margin=dict(l=0, r=80, t=10, b=40),
         plot_bgcolor=C_BG,
         paper_bgcolor=C_BG_SECTION,
         font=dict(family="Inter, sans-serif", color=C_TEXT),
@@ -132,15 +163,19 @@ if not show_zero:
 
 month_name = calendar.month_name[month].capitalize()
 if month == 1:
-    prev_label = f"Dic {year - 1}"
+    prev_month     = 12
+    prev_year      = year - 1
+    prev_label     = f"Dic {year - 1}"
 else:
-    prev_label = f"{calendar.month_name[month - 1].capitalize()} {year}"
+    prev_month     = month - 1
+    prev_year      = year
+    prev_label     = f"{calendar.month_name[month - 1].capitalize()} {year}"
 
 # ── Tabs ──────────────────────────────────────────────────────────────────────
-tab_ocup, tab_duenos = st.tabs(["Ocupación", "Por Dueño"])
+tab_ocup, tab_ind = st.tabs(["Ocupación", "Reporte Individual"])
 
 # ══════════════════════════════════════════════════════════════════════════════
-# TAB 1 — OCUPACIÓN
+# TAB 1 — OCUPACIÓN GENERAL
 # ══════════════════════════════════════════════════════════════════════════════
 with tab_ocup:
     st.markdown(f"## Ocupación · {month_name} {year}")
@@ -155,7 +190,7 @@ with tab_ocup:
     n_deptos = df_mes["nombre"].nunique()
 
     c1, c2, c3, c4 = st.columns(4)
-    for col, val, label, delta_html in [
+    for col, val, label, dh in [
         (c1, f"{avg_act*100:.1f}%", "Ocupación promedio", _delta_html(delta)),
         (c2, str(n_deptos),         "Propiedades con reservas", ""),
         (c3, str(n_full),           "Propiedades al 100%", ""),
@@ -166,7 +201,7 @@ with tab_ocup:
             <div class="bmh-card">
               <div class="bmh-val">{val}</div>
               <div class="bmh-label">{label}</div>
-              {delta_html}
+              {dh}
             </div>""", unsafe_allow_html=True)
 
     st.markdown("<br>", unsafe_allow_html=True)
@@ -191,15 +226,13 @@ with tab_ocup:
         ))
         fig1.update_layout(
             xaxis=dict(title="% Ocupación", ticksuffix="%", range=[0, 118],
-                       gridcolor=C_BORDER, zerolinecolor=C_BORDER),
+                       gridcolor=C_BORDER, zerolinecolor=C_BORDER,
+                       tickfont=dict(color=C_TEXT), title_font=dict(color=C_TEXT)),
             yaxis=dict(title="", tickfont=dict(size=12, color=C_TEXT)),
             **_chart_layout(max(420, len(df_p) * 26)),
         )
         st.plotly_chart(fig1, use_container_width=True)
-        st.caption(
-            "🟢 ≥ 70% &nbsp;&nbsp; 🟡 40–70% &nbsp;&nbsp; 🔴 < 40%"
-            " &nbsp;&nbsp;&nbsp; *colores de referencia, no umbral de performance*"
-        )
+        st.caption("🟢 ≥ 70% &nbsp;&nbsp; 🟡 50–70% &nbsp;&nbsp; 🔴 < 50%")
 
     # ── Chart 2: comparativa mes anterior ─────────────────────────────────────
     st.markdown(
@@ -237,7 +270,8 @@ with tab_ocup:
         ))
         fig2.update_layout(
             xaxis=dict(title="Δ puntos porcentuales", ticksuffix="pp",
-                       zeroline=True, zerolinecolor=C_TEXT_SEC, gridcolor=C_BORDER),
+                       zeroline=True, zerolinecolor=C_TEXT_SEC, gridcolor=C_BORDER,
+                       tickfont=dict(color=C_TEXT), title_font=dict(color=C_TEXT)),
             yaxis=dict(title="", tickfont=dict(size=12, color=C_TEXT)),
             **_chart_layout(max(420, len(df_c) * 26)),
         )
@@ -265,7 +299,8 @@ with tab_ocup:
                        annotation_font_color=C_TEXT_SEC)
         fig3.update_layout(
             xaxis=dict(title="% Ocupación promedio", ticksuffix="%",
-                       range=[0, 118], gridcolor=C_BORDER),
+                       range=[0, 118], gridcolor=C_BORDER,
+                       tickfont=dict(color=C_TEXT), title_font=dict(color=C_TEXT)),
             yaxis=dict(title="", tickfont=dict(size=12, color=C_TEXT)),
             **_chart_layout(max(300, len(df_r) * 52)),
         )
@@ -302,108 +337,152 @@ with tab_ocup:
         )
 
 # ══════════════════════════════════════════════════════════════════════════════
-# TAB 2 — POR DUEÑO
+# TAB 2 — REPORTE INDIVIDUAL
 # ══════════════════════════════════════════════════════════════════════════════
-with tab_duenos:
-    st.markdown(f"## Por Dueño · {month_name} {year}")
+with tab_ind:
+    # Responsable selector
+    responsables = sorted(df_mes["responsable"].dropna().unique().tolist())
+    if not responsables:
+        st.info("Sin datos de responsables para el período seleccionado.")
+        st.stop()
 
-    # Join dueno from master onto df_mes via nombre
-    dueno_map = (
-        df_master[["nombre", "dueno"]]
-        .dropna(subset=["nombre", "dueno"])
-        .drop_duplicates(subset=["nombre"])
+    resp_sel = st.selectbox(
+        "Responsable",
+        responsables,
+        key="resp_ind",
     )
-    df_d = df_mes.merge(dueno_map, on="nombre", how="left")
 
-    # Drop rows without dueno
-    df_d = df_d[df_d["dueno"].astype(str).str.strip() != ""].copy()
+    # Filter data for selected responsable
+    df_ri = df_mes[df_mes["responsable"] == resp_sel].copy()
 
-    if df_d.empty:
-        st.info("Sin datos de dueño para el período seleccionado.")
+    # df_comp has responsable only for rows that appear in the current month;
+    # outer-join rows from prior month only won't have it. Filter safely.
+    if "responsable" in df_comp.columns:
+        df_ri_ant = df_comp[df_comp["responsable"].fillna("") == resp_sel].copy()
     else:
-        # ── Resumen por dueño ─────────────────────────────────────────────────
-        df_dueno = (
-            df_d.groupby("dueno")
-            .agg(
-                n_deptos    =("nombre", "nunique"),
-                avg_ocupacion=("pct_ocupacion", "mean"),
-                deptos_sobre_70=("pct_ocupacion", lambda x: (x >= 0.70).sum()),
-            )
-            .reset_index()
-            .sort_values("avg_ocupacion", ascending=False)
-        )
-        df_dueno["avg_pct"] = (df_dueno["avg_ocupacion"] * 100).round(1)
-        df_dueno["color"]   = df_dueno["avg_ocupacion"].apply(_occ_color)
+        df_ri_ant = pd.DataFrame()
 
-        # KPIs
-        n_duenos   = df_dueno["dueno"].nunique()
-        best_dueno = df_dueno.iloc[0]["dueno"] if not df_dueno.empty else "—"
-        best_pct   = df_dueno.iloc[0]["avg_pct"] if not df_dueno.empty else 0
+    # Add performance category
+    df_ri["performance"] = df_ri["pct_ocupacion"].apply(_perf_label)
 
-        c1, c2, c3 = st.columns(3)
-        for col, val, label in [
-            (c1, str(n_duenos),           "Dueños con reservas"),
-            (c2, f"{df_dueno['avg_pct'].mean():.1f}%", "Ocupación promedio general"),
-            (c3, f"{best_dueno} ({best_pct}%)", "Mayor ocupación promedio"),
-        ]:
-            with col:
-                st.markdown(f"""
-                <div class="bmh-card">
-                  <div class="bmh-val">{val}</div>
-                  <div class="bmh-label">{label}</div>
-                </div>""", unsafe_allow_html=True)
+    # ── Header ────────────────────────────────────────────────────────────────
+    st.markdown(f"## Reporte · {resp_sel} · {month_name} {year}")
 
-        st.markdown("<br>", unsafe_allow_html=True)
+    # ── KPIs ──────────────────────────────────────────────────────────────────
+    avg_ri     = df_ri["pct_ocupacion"].mean() if not df_ri.empty else 0
+    n_ri       = df_ri["nombre"].nunique()
+    n_ri_70    = int((df_ri["pct_ocupacion"] >= 0.70).sum())
+    n_excelente = int((df_ri["performance"] == "Excelente").sum())
+    n_revisar   = int((df_ri["performance"] == "Revisar").sum())
 
-        # ── Gráfico ocupación por dueño ───────────────────────────────────────
-        st.markdown('<div class="section-title">Ocupación promedio por dueño</div>', unsafe_allow_html=True)
+    c1, c2, c3, c4 = st.columns(4)
+    for col, val, label in [
+        (c1, f"{avg_ri*100:.1f}%",    "Ocupación promedio"),
+        (c2, str(n_ri),               "Propiedades a cargo"),
+        (c3, str(n_excelente),        "Excelente (≥ 70%)"),
+        (c4, str(n_revisar),          "Revisar (< 40%)"),
+    ]:
+        with col:
+            st.markdown(f"""
+            <div class="bmh-card">
+              <div class="bmh-val">{val}</div>
+              <div class="bmh-label">{label}</div>
+            </div>""", unsafe_allow_html=True)
 
-        df_dg = df_dueno.sort_values("avg_pct", ascending=True)
-        fig_d = go.Figure(go.Bar(
-            x=df_dg["avg_pct"],
-            y=df_dg["dueno"],
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    if df_ri.empty:
+        st.info("Sin reservas para este responsable en el período seleccionado.")
+    else:
+        # ── Gráfico ocupación por propiedad ───────────────────────────────────
+        st.markdown('<div class="section-title">Ocupación por propiedad</div>', unsafe_allow_html=True)
+
+        df_ri_sorted = df_ri.sort_values("pct_ocupacion", ascending=True).copy()
+        df_ri_sorted["color"] = df_ri_sorted["pct_ocupacion"].apply(_occ_color)
+
+        fig_ri = go.Figure(go.Bar(
+            x=df_ri_sorted["pct_ocupacion"] * 100,
+            y=df_ri_sorted["nombre"],
             orientation="h",
-            text=df_dg["avg_pct"].astype(str) + "%",
+            text=(df_ri_sorted["pct_ocupacion"] * 100).round(1).astype(str) + "%",
             textposition="outside",
-            marker_color=df_dg["color"],
-            hovertemplate="<b>%{y}</b><br>Ocup. promedio: %{x:.1f}%<extra></extra>",
+            marker_color=df_ri_sorted["color"],
+            hovertemplate="<b>%{y}</b><br>Ocupación: %{x:.1f}%<extra></extra>",
         ))
-        fig_d.add_vline(x=70, line_dash="dash", line_color=C_TEXT_SEC,
-                        annotation_text="70%", annotation_position="top right",
-                        annotation_font_color=C_TEXT_SEC)
-        fig_d.update_layout(
-            xaxis=dict(title="% Ocupación promedio", ticksuffix="%",
-                       range=[0, 118], gridcolor=C_BORDER),
+        fig_ri.add_vline(x=70, line_dash="dash", line_color=C_TEXT_SEC,
+                         annotation_text="meta 70%", annotation_position="top right",
+                         annotation_font_color=C_TEXT_SEC)
+        fig_ri.update_layout(
+            xaxis=dict(title="% Ocupación", ticksuffix="%", range=[0, 118],
+                       gridcolor=C_BORDER, zerolinecolor=C_BORDER,
+                       tickfont=dict(color=C_TEXT), title_font=dict(color=C_TEXT)),
             yaxis=dict(title="", tickfont=dict(size=12, color=C_TEXT)),
-            **_chart_layout(max(300, len(df_dg) * 52)),
+            **_chart_layout(max(320, len(df_ri_sorted) * 40)),
         )
-        st.plotly_chart(fig_d, use_container_width=True)
+        st.plotly_chart(fig_ri, use_container_width=True)
 
-        # ── Tabla resumen por dueño ───────────────────────────────────────────
-        st.markdown('<div class="section-title">Tabla resumen</div>', unsafe_allow_html=True)
-
-        df_dt = df_dueno[["dueno", "n_deptos", "avg_pct", "deptos_sobre_70"]].copy()
-        df_dt.columns = ["Dueño", "Deptos", "Ocup. promedio (%)", "Deptos ≥ 70%"]
-        st.dataframe(df_dt, use_container_width=True, hide_index=True)
-
-        # ── Detalle por propiedad (expandible) ────────────────────────────────
-        with st.expander("Ver detalle por propiedad"):
-            df_det = df_d[["dueno", "nombre", "dias_ocupados", "dias_mes", "pct_ocupacion"]].copy()
-            df_det["pct_ocupacion"] = (df_det["pct_ocupacion"] * 100).round(1)
-            df_det = df_det.sort_values(["dueno", "pct_ocupacion"], ascending=[True, False]).reset_index(drop=True)
-            st.dataframe(
-                df_det,
-                use_container_width=True,
-                hide_index=True,
-                column_config={
-                    "dueno":         st.column_config.TextColumn("Dueño"),
-                    "nombre":        st.column_config.TextColumn("Propiedad"),
-                    "dias_ocupados": st.column_config.NumberColumn("Días ocupados"),
-                    "dias_mes":      st.column_config.NumberColumn("Días mes"),
-                    "pct_ocupacion": st.column_config.ProgressColumn(
-                        "Ocupación (%)",
-                        min_value=0, max_value=100,
-                        format="%.1f%%",
-                    ),
-                },
+        # ── Comparativa vs mes anterior ────────────────────────────────────────
+        if not df_ri_ant.empty:
+            st.markdown(
+                f'<div class="section-title">Comparativa {month_name} vs {prev_label}</div>',
+                unsafe_allow_html=True,
             )
+            df_ri_c = df_ri_ant.sort_values("delta", ascending=True).copy()
+            df_ri_c["color"] = df_ri_c["delta"].apply(
+                lambda x: C_GREEN if x > 0.01 else (C_RED_SOFT if x < -0.01 else C_BORDER)
+            )
+            df_ri_c["label"] = df_ri_c["delta"].apply(
+                lambda x: f"+{x*100:.1f}pp" if x >= 0 else f"{x*100:.1f}pp"
+            )
+            fig_rc = go.Figure(go.Bar(
+                x=df_ri_c["delta"] * 100,
+                y=df_ri_c["nombre"],
+                orientation="h",
+                text=df_ri_c["label"],
+                textposition="outside",
+                marker_color=df_ri_c["color"],
+                customdata=list(zip(
+                    (df_ri_c["pct_actual"] * 100).round(1).astype(str) + "%",
+                    (df_ri_c["pct_anterior"] * 100).round(1).astype(str) + "%",
+                )),
+                hovertemplate=(
+                    "<b>%{y}</b><br>"
+                    f"{month_name}: %{{customdata[0]}}<br>"
+                    f"{prev_label}: %{{customdata[1]}}<br>"
+                    "Δ: %{x:.1f}pp<extra></extra>"
+                ),
+            ))
+            fig_rc.update_layout(
+                xaxis=dict(title="Δ puntos porcentuales", ticksuffix="pp",
+                           zeroline=True, zerolinecolor=C_TEXT_SEC, gridcolor=C_BORDER,
+                           tickfont=dict(color=C_TEXT), title_font=dict(color=C_TEXT)),
+                yaxis=dict(title="", tickfont=dict(size=12, color=C_TEXT)),
+                **_chart_layout(max(320, len(df_ri_c) * 40)),
+            )
+            st.plotly_chart(fig_rc, use_container_width=True)
+
+        # ── Tabla con categoría de performance ────────────────────────────────
+        st.markdown('<div class="section-title">Detalle por propiedad</div>', unsafe_allow_html=True)
+
+        PERF_ORDER = {"Excelente": 0, "Ajustar": 1, "Mejorar": 2, "Revisar": 3}
+        df_ri_tbl = df_ri[["nombre", "dias_ocupados", "dias_mes", "pct_ocupacion", "performance"]].copy()
+        df_ri_tbl["pct_pct"] = (df_ri_tbl["pct_ocupacion"] * 100).round(1)
+        df_ri_tbl["_sort"] = df_ri_tbl["performance"].map(PERF_ORDER)
+        df_ri_tbl = df_ri_tbl.sort_values(["_sort", "pct_pct"], ascending=[True, False]).reset_index(drop=True)
+        df_ri_tbl = df_ri_tbl.drop(columns=["_sort", "pct_ocupacion"])
+        df_ri_tbl.columns = ["Propiedad", "Días ocupados", "Días mes", "Ocupación (%)", "Performance"]
+
+        st.dataframe(
+            df_ri_tbl,
+            use_container_width=True,
+            hide_index=True,
+            column_config={
+                "Propiedad":      st.column_config.TextColumn("Propiedad"),
+                "Días ocupados":  st.column_config.NumberColumn("Días ocupados"),
+                "Días mes":       st.column_config.NumberColumn("Días mes"),
+                "Ocupación (%)":  st.column_config.ProgressColumn(
+                    "Ocupación (%)", min_value=0, max_value=100, format="%.1f%%"
+                ),
+                "Performance":    st.column_config.TextColumn("Performance"),
+            },
+        )
