@@ -50,6 +50,26 @@ st.markdown(f"""
   [data-testid="stSidebar"] .stMarkdown,
   [data-testid="stSidebar"] .stCaption {{ color: {C_TEXT} !important; }}
 
+  /* Selectbox & button widgets inside sidebar — white bg, black text */
+  [data-testid="stSidebar"] [data-baseweb="select"] {{
+    background-color: {C_BG} !important;
+    border: 1px solid {C_BORDER} !important;
+    border-radius: 8px !important;
+  }}
+  [data-testid="stSidebar"] [data-baseweb="select"] * {{
+    background-color: {C_BG} !important;
+    color: {C_TEXT} !important;
+  }}
+  [data-testid="stSidebar"] [data-baseweb="select"] svg {{
+    fill: {C_TEXT} !important;
+  }}
+  [data-testid="stSidebar"] button[kind="secondary"],
+  [data-testid="stSidebar"] [data-testid="stBaseButton-secondary"] {{
+    background-color: {C_TEXT} !important;
+    color: {C_BG} !important;
+    border: none !important;
+  }}
+
   h1, h2, h3 {{ color: {C_TEXT} !important; font-family: 'Inter', sans-serif !important; }}
 
   /* Tabs — always visible in dark text / red when active */
