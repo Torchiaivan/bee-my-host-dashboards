@@ -155,11 +155,48 @@ def _calc_bono(pct: float) -> tuple[float, float]:
 def _chart_layout(height: int) -> dict:
     return dict(
         height=height,
-        margin=dict(l=0, r=80, t=10, b=40),
+        margin=dict(l=0, r=100, t=10, b=40),
         plot_bgcolor=C_BG,
-        paper_bgcolor=C_BG_SECTION,
-        font=dict(family="Inter, sans-serif", color=C_TEXT),
+        paper_bgcolor=C_BG,
+        font=dict(family="Inter, sans-serif", color=C_TEXT_SEC),
     )
+
+def _lollipop_traces(
+    names: list[str],
+    values: list[float],
+    colors: list[str],
+    suffix: str = "%",
+) -> list:
+    """
+    Build a list of Plotly traces for a horizontal lollipop chart.
+    Each entry produces two traces: a faint stem line + a glowing dot.
+    `values` must already be in display units (e.g., multiply pct by 100 first).
+    """
+    traces = []
+    for name, val, color in zip(names, values, colors):
+        # Stem
+        traces.append(go.Scatter(
+            x=[0, val],
+            y=[name, name],
+            mode="lines",
+            line=dict(color=color, width=2),
+            opacity=0.35,
+            showlegend=False,
+            hoverinfo="skip",
+        ))
+        # Dot + label
+        traces.append(go.Scatter(
+            x=[val],
+            y=[name],
+            mode="markers+text",
+            marker=dict(color=color, size=12, line=dict(color=color, width=0)),
+            text=f"{val:.1f}{suffix}",
+            textposition="middle right",
+            textfont=dict(color=color, size=11, family="Inter, sans-serif"),
+            hovertemplate=f"<b>{name}</b><br>{val:.1f}{suffix}<extra></extra>",
+            showlegend=False,
+        ))
+    return traces
 
 # ── Data loading ──────────────────────────────────────────────────────────────
 @st.cache_data(ttl=3600, show_spinner="Cargando datos desde Google Sheets…")
