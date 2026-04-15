@@ -13,17 +13,22 @@ import streamlit as st
 from data_loader import build_master
 from ocupacion_calc import calc_ocupacion, calc_comparativa, resumen_por_responsable
 
-# ── Palette (matches bee-my-host-web) ────────────────────────────────────────
+# ── Palette (dark mode) ──────────────────────────────────────────────────────
 C_PRIMARY    = "#FF385C"
 C_PRIMARY_D  = "#E31C5F"
-C_BG         = "#FFFFFF"
-C_BG_SECTION = "#F7F7F7"
-C_TEXT       = "#222222"
-C_TEXT_SEC   = "#717171"
-C_BORDER     = "#EBEBEB"
-C_GREEN      = "#16a34a"
-C_RED_SOFT   = "#ef4444"
+C_BG         = "#0f172a"
+C_BG_SECTION = "#0f172a"
+C_BG_CARD    = "#1e293b"
+C_BG_SIDEBAR = "#0d1526"
+C_TEXT       = "#f1f5f9"
+C_TEXT_SEC   = "#64748b"
+C_BORDER     = "#1e293b"
+C_BORDER_MID = "#334155"
+C_GREEN      = "#22c55e"
+C_RED_SOFT   = "#f87171"
 C_AMBER      = "#f59e0b"
+C_BLUE       = "#38bdf8"
+C_PURPLE     = "#a78bfa"
 
 # ── Page config ───────────────────────────────────────────────────────────────
 st.set_page_config(
