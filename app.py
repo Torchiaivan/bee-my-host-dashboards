@@ -295,22 +295,20 @@ with tab_ocup:
     else:
         df_p = df_mes.sort_values("pct_ocupacion", ascending=True).copy()
         df_p["color"] = df_p["pct_ocupacion"].apply(_occ_color)
+        vals   = (df_p["pct_ocupacion"] * 100).tolist()
+        names  = df_p["nombre"].tolist()
+        colors = df_p["color"].tolist()
 
-        fig1 = go.Figure(go.Bar(
-            x=df_p["pct_ocupacion"] * 100,
-            y=df_p["nombre"],
-            orientation="h",
-            text=(df_p["pct_ocupacion"] * 100).round(1).astype(str) + "%",
-            textposition="outside",
-            marker_color=df_p["color"],
-            hovertemplate="<b>%{y}</b><br>Ocupación: %{x:.1f}%<extra></extra>",
-        ))
+        fig1 = go.Figure(_lollipop_traces(names, vals, colors, suffix="%"))
+        fig1.add_vline(x=70, line_dash="dash", line_color=C_BORDER_MID,
+                       annotation_text="meta 70%", annotation_position="top right",
+                       annotation_font_color=C_TEXT_SEC)
         fig1.update_layout(
-            xaxis=dict(title="% Ocupación", ticksuffix="%", range=[0, 118],
-                       gridcolor=C_BORDER, zerolinecolor=C_BORDER,
-                       tickfont=dict(color=C_TEXT), title_font=dict(color=C_TEXT)),
-            yaxis=dict(title="", tickfont=dict(size=12, color=C_TEXT)),
-            **_chart_layout(max(420, len(df_p) * 26)),
+            xaxis=dict(title="% Ocupación", ticksuffix="%", range=[0, 130],
+                       gridcolor=C_BORDER, zerolinecolor=C_BORDER_MID,
+                       tickfont=dict(color=C_TEXT_SEC), title_font=dict(color=C_TEXT_SEC)),
+            yaxis=dict(title="", tickfont=dict(size=12, color=C_TEXT_SEC)),
+            **_chart_layout(max(420, len(df_p) * 32)),
         )
         st.plotly_chart(fig1, use_container_width=True)
         st.caption("🟢 ≥ 70% &nbsp;&nbsp; 🟡 50–70% &nbsp;&nbsp; 🔴 < 50%")
@@ -326,35 +324,37 @@ with tab_ocup:
     else:
         df_c = df_comp.sort_values("delta", ascending=True).copy()
         df_c["color"] = df_c["delta"].apply(
-            lambda x: C_GREEN if x > 0.01 else (C_RED_SOFT if x < -0.01 else C_BORDER)
+            lambda x: C_GREEN if x > 0.01 else (C_RED_SOFT if x < -0.01 else C_BORDER_MID)
         )
-        df_c["label"] = df_c["delta"].apply(
-            lambda x: f"+{x*100:.1f}pp" if x >= 0 else f"{x*100:.1f}pp"
-        )
-        hover_actual   = (df_c["pct_actual"] * 100).round(1).astype(str) + "%"
-        hover_anterior = (df_c["pct_anterior"] * 100).round(1).astype(str) + "%"
+        delta_vals = (df_c["delta"] * 100).tolist()
+        names_c    = df_c["nombre"].tolist()
+        colors_c   = df_c["color"].tolist()
 
-        fig2 = go.Figure(go.Bar(
-            x=df_c["delta"] * 100,
-            y=df_c["nombre"],
-            orientation="h",
-            text=df_c["label"],
-            textposition="outside",
-            marker_color=df_c["color"],
-            customdata=list(zip(hover_actual, hover_anterior)),
+        fig2 = go.Figure(_lollipop_traces(names_c, delta_vals, colors_c, suffix="pp"))
+        # Invisible hover-only scatter for rich tooltip
+        fig2.add_trace(go.Scatter(
+            x=delta_vals,
+            y=names_c,
+            mode="markers",
+            marker=dict(opacity=0, size=16),
+            customdata=list(zip(
+                (df_c["pct_actual"] * 100).round(1).astype(str) + "%",
+                (df_c["pct_anterior"] * 100).round(1).astype(str) + "%",
+            )),
             hovertemplate=(
                 "<b>%{y}</b><br>"
                 f"{month_name}: %{{customdata[0]}}<br>"
                 f"{prev_label}: %{{customdata[1]}}<br>"
                 "Δ: %{x:.1f}pp<extra></extra>"
             ),
+            showlegend=False,
         ))
         fig2.update_layout(
             xaxis=dict(title="Δ puntos porcentuales", ticksuffix="pp",
                        zeroline=True, zerolinecolor=C_TEXT_SEC, gridcolor=C_BORDER,
-                       tickfont=dict(color=C_TEXT), title_font=dict(color=C_TEXT)),
-            yaxis=dict(title="", tickfont=dict(size=12, color=C_TEXT)),
-            **_chart_layout(max(420, len(df_c) * 26)),
+                       tickfont=dict(color=C_TEXT_SEC), title_font=dict(color=C_TEXT_SEC)),
+            yaxis=dict(title="", tickfont=dict(size=12, color=C_TEXT_SEC)),
+            **_chart_layout(max(420, len(df_c) * 32)),
         )
         st.plotly_chart(fig2, use_container_width=True)
 
@@ -366,24 +366,21 @@ with tab_ocup:
         df_r["avg_pct"] = (df_r["avg_ocupacion"] * 100).round(1)
         df_r["color"]   = df_r["avg_ocupacion"].apply(_occ_color)
 
-        fig3 = go.Figure(go.Bar(
-            x=df_r["avg_pct"],
-            y=df_r["responsable"],
-            orientation="h",
-            text=df_r["avg_pct"].astype(str) + "%",
-            textposition="outside",
-            marker_color=df_r["color"],
-            hovertemplate="<b>%{y}</b><br>Ocup. promedio: %{x:.1f}%<extra></extra>",
+        fig3 = go.Figure(_lollipop_traces(
+            df_r["responsable"].tolist(),
+            df_r["avg_pct"].tolist(),
+            df_r["color"].tolist(),
+            suffix="%",
         ))
-        fig3.add_vline(x=70, line_dash="dash", line_color=C_TEXT_SEC,
+        fig3.add_vline(x=70, line_dash="dash", line_color=C_BORDER_MID,
                        annotation_text="70%", annotation_position="top right",
                        annotation_font_color=C_TEXT_SEC)
         fig3.update_layout(
             xaxis=dict(title="% Ocupación promedio", ticksuffix="%",
-                       range=[0, 118], gridcolor=C_BORDER,
-                       tickfont=dict(color=C_TEXT), title_font=dict(color=C_TEXT)),
-            yaxis=dict(title="", tickfont=dict(size=12, color=C_TEXT)),
-            **_chart_layout(max(300, len(df_r) * 52)),
+                       range=[0, 130], gridcolor=C_BORDER,
+                       tickfont=dict(color=C_TEXT_SEC), title_font=dict(color=C_TEXT_SEC)),
+            yaxis=dict(title="", tickfont=dict(size=12, color=C_TEXT_SEC)),
+            **_chart_layout(max(300, len(df_r) * 60)),
         )
         st.plotly_chart(fig3, use_container_width=True)
 
