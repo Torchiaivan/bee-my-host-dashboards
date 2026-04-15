@@ -269,16 +269,18 @@ with tab_ocup:
     n_deptos = df_mes["nombre"].nunique()
 
     c1, c2, c3, c4 = st.columns(4)
-    for col, val, label, dh in [
-        (c1, f"{avg_act*100:.1f}%", "Ocupación promedio", _delta_html(delta)),
-        (c2, str(n_deptos),         "Propiedades con reservas", ""),
-        (c3, str(n_full),           "Propiedades al 100%", ""),
-        (c4, str(n_over70),         "Propiedades ≥ 70%", ""),
-    ]:
+    cards_ocup = [
+        (c1, f"{avg_act*100:.1f}%", "Ocupación promedio",       _delta_html(delta), "🏠", C_PRIMARY),
+        (c2, str(n_deptos),         "Propiedades con reservas",  "",                 "📋", C_BLUE),
+        (c3, str(n_full),           "Propiedades al 100%",       "",                 "✅", C_GREEN),
+        (c4, str(n_over70),         "Propiedades ≥ 70%",         "",                 "🎯", C_PURPLE),
+    ]
+    for col, val, label, dh, icon, color in cards_ocup:
         with col:
             st.markdown(f"""
-            <div class="bmh-card">
-              <div class="bmh-val">{val}</div>
+            <div class="bmh-card" style="border:1px solid {color}33; box-shadow:0 0 12px {color}22;">
+              <div class="bmh-icon">{icon}</div>
+              <div class="bmh-val" style="color:{color};">{val}</div>
               <div class="bmh-label">{label}</div>
               {dh}
             </div>""", unsafe_allow_html=True)
