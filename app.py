@@ -42,27 +42,29 @@ st.markdown(f"""
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
   html, body, [class*="css"] {{ font-family: 'Inter', sans-serif !important; }}
-  [data-testid="stAppViewContainer"] {{ background: {C_BG_SECTION}; }}
+  [data-testid="stAppViewContainer"] {{ background: {C_BG}; }}
 
-  /* Sidebar — white background, black text */
-  [data-testid="stSidebar"] {{ background: {C_BG} !important; border-right: 1px solid {C_BORDER}; }}
-  [data-testid="stSidebar"] hr {{ border-color: {C_BORDER}; }}
+  /* Sidebar */
+  [data-testid="stSidebar"] {{
+    background: {C_BG_SIDEBAR} !important;
+    border-right: 1px solid {C_BORDER} !important;
+  }}
+  [data-testid="stSidebar"] hr {{ border-color: {C_BORDER_MID}; }}
   [data-testid="stSidebar"] p,
   [data-testid="stSidebar"] label,
   [data-testid="stSidebar"] span,
   [data-testid="stSidebar"] div,
   [data-testid="stSidebar"] small,
   [data-testid="stSidebar"] .stMarkdown,
-  [data-testid="stSidebar"] .stCaption {{ color: {C_TEXT} !important; }}
+  [data-testid="stSidebar"] .stCaption {{ color: {C_TEXT_SEC} !important; }}
 
-  /* Selectbox & button widgets inside sidebar — white bg, black text */
   [data-testid="stSidebar"] [data-baseweb="select"] {{
-    background-color: {C_BG} !important;
-    border: 1px solid {C_BORDER} !important;
+    background-color: {C_BG_CARD} !important;
+    border: 1px solid {C_BORDER_MID} !important;
     border-radius: 8px !important;
   }}
   [data-testid="stSidebar"] [data-baseweb="select"] * {{
-    background-color: {C_BG} !important;
+    background-color: {C_BG_CARD} !important;
     color: {C_TEXT} !important;
   }}
   [data-testid="stSidebar"] [data-baseweb="select"] svg {{
@@ -78,10 +80,10 @@ st.markdown(f"""
 
   h1, h2, h3 {{ color: {C_TEXT} !important; font-family: 'Inter', sans-serif !important; }}
 
-  /* Tabs — always visible in dark text / red when active */
+  /* Tabs */
   .stTabs [data-baseweb="tab-list"] {{ background: transparent; gap: 4px; }}
   .stTabs [data-baseweb="tab"] {{
-    color: {C_TEXT} !important;
+    color: {C_TEXT_SEC} !important;
     font-weight: 600;
     font-size: 0.95rem;
     background: transparent;
@@ -94,20 +96,21 @@ st.markdown(f"""
   }}
   .stTabs [data-baseweb="tab-highlight"] {{ background: {C_PRIMARY} !important; }}
 
+  /* KPI cards */
   .bmh-card {{
-    background: {C_BG};
-    border: 1px solid {C_BORDER};
+    background: {C_BG_CARD};
     border-radius: 12px;
     padding: 20px 24px;
     text-align: center;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
   }}
   .bmh-val   {{ font-size: 2rem;  font-weight: 700; color: {C_TEXT};    line-height: 1.2; }}
+  .bmh-icon  {{ font-size: 1.1rem; margin-bottom: 6px; }}
   .bmh-label {{ font-size: 0.82rem; color: {C_TEXT_SEC}; margin-top: 6px; }}
   .bmh-delta-pos {{ color: {C_GREEN};   font-size: 0.85rem; font-weight: 600; }}
   .bmh-delta-neg {{ color: {C_RED_SOFT}; font-size: 0.85rem; font-weight: 600; }}
   .bmh-delta-neu {{ color: {C_TEXT_SEC}; font-size: 0.85rem; }}
 
+  /* Section titles */
   .section-title {{
     font-size: 1rem; font-weight: 600; color: {C_TEXT};
     margin: 32px 0 14px; padding-bottom: 6px;
@@ -115,10 +118,10 @@ st.markdown(f"""
   }}
 
   /* Performance badge pills */
-  .perf-excelente {{ background:#dcfce7; color:#15803d; border-radius:6px; padding:2px 10px; font-size:0.8rem; font-weight:600; }}
-  .perf-ajustar   {{ background:#fef9c3; color:#a16207; border-radius:6px; padding:2px 10px; font-size:0.8rem; font-weight:600; }}
-  .perf-mejorar   {{ background:#ffedd5; color:#c2410c; border-radius:6px; padding:2px 10px; font-size:0.8rem; font-weight:600; }}
-  .perf-revisar   {{ background:#fee2e2; color:#b91c1c; border-radius:6px; padding:2px 10px; font-size:0.8rem; font-weight:600; }}
+  .perf-excelente {{ background:#14532d; color:#22c55e; border-radius:6px; padding:2px 10px; font-size:0.8rem; font-weight:600; }}
+  .perf-ajustar   {{ background:#78350f; color:#fbbf24; border-radius:6px; padding:2px 10px; font-size:0.8rem; font-weight:600; }}
+  .perf-mejorar   {{ background:#7c2d12; color:#fb923c; border-radius:6px; padding:2px 10px; font-size:0.8rem; font-weight:600; }}
+  .perf-revisar   {{ background:#7f1d1d; color:#f87171; border-radius:6px; padding:2px 10px; font-size:0.8rem; font-weight:600; }}
 
   .stDataFrame {{ border-radius: 10px; overflow: hidden; }}
 </style>
