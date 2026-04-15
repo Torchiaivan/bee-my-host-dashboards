@@ -113,6 +113,8 @@ go.Scatter(
 
 Each property gets its own pair of traces. Color per performance threshold (green/amber/red) is unchanged.
 
+**Negative deltas (comparativa chart):** `x=[0, delta]` works correctly with negative values — Plotly draws the line leftward. Color logic stays: green if delta > 0.01, red if delta < -0.01, `C_BORDER_SUBTLE` otherwise.
+
 **Helper function:** Extract `_lollipop_traces(df, x_col, y_col, color_col, text_col)` returning a list of traces. Used by all 4 chart sections.
 
 **Chart backgrounds:**

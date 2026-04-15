@@ -11,3 +11,6 @@ venv/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Superpowers brainstorm sessions
+.superpowers/
