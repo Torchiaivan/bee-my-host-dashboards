@@ -462,16 +462,18 @@ with tab_ind:
     total_mes        = sueldo_base + total_bono
 
     c1, c2, c3, c4 = st.columns(4)
-    for col, val, label in [
-        (c1, f"{avg_ri*100:.1f}%",   "Ocupación promedio"),
-        (c2, str(n_ri),              "Propiedades a cargo"),
-        (c3, str(n_excelente),       "Excelente (≥ 70%)"),
-        (c4, str(n_revisar),         "Revisar (< 40%)"),
-    ]:
+    cards_ind = [
+        (c1, f"{avg_ri*100:.1f}%", "Ocupación promedio",    "🏠", C_PRIMARY),
+        (c2, str(n_ri),            "Propiedades a cargo",    "📋", C_BLUE),
+        (c3, str(n_excelente),     "Excelente (≥ 70%)",      "✅", C_GREEN),
+        (c4, str(n_revisar),       "Revisar (< 40%)",        "⚠️", C_RED_SOFT),
+    ]
+    for col, val, label, icon, color in cards_ind:
         with col:
             st.markdown(f"""
-            <div class="bmh-card">
-              <div class="bmh-val">{val}</div>
+            <div class="bmh-card" style="border:1px solid {color}33; box-shadow:0 0 12px {color}22;">
+              <div class="bmh-icon">{icon}</div>
+              <div class="bmh-val" style="color:{color};">{val}</div>
               <div class="bmh-label">{label}</div>
             </div>""", unsafe_allow_html=True)
 
@@ -479,15 +481,17 @@ with tab_ind:
 
     # ── Resumen de cobro del mes ───────────────────────────────────────────────
     ca, cb, cc = st.columns(3)
-    for col, val, label in [
-        (ca, f"${sueldo_base:,.0f}", f"Sueldo base ({n_ri} deptos × $14.000)"),
-        (cb, f"${total_bono:,.0f}",  "Bono por ocupación"),
-        (cc, f"${total_mes:,.0f}",   "Total a cobrar en el mes"),
-    ]:
+    cards_cobro = [
+        (ca, f"${sueldo_base:,.0f}", f"Sueldo base ({n_ri} deptos × $14.000)", "💰", C_TEXT_SEC),
+        (cb, f"${total_bono:,.0f}",  "Bono por ocupación",                     "🎁", C_PURPLE),
+        (cc, f"${total_mes:,.0f}",   "Total a cobrar en el mes",               "💵", C_GREEN),
+    ]
+    for col, val, label, icon, color in cards_cobro:
         with col:
             st.markdown(f"""
-            <div class="bmh-card">
-              <div class="bmh-val">{val}</div>
+            <div class="bmh-card" style="border:1px solid {color}33; box-shadow:0 0 12px {color}22;">
+              <div class="bmh-icon">{icon}</div>
+              <div class="bmh-val" style="color:{color};">{val}</div>
               <div class="bmh-label">{label}</div>
             </div>""", unsafe_allow_html=True)
 
@@ -500,24 +504,21 @@ with tab_ind:
         df_ri_sorted = df_ri.sort_values("pct_ocupacion", ascending=True).copy()
         df_ri_sorted["color"] = df_ri_sorted["pct_ocupacion"].apply(_occ_color)
 
-        fig_ri = go.Figure(go.Bar(
-            x=df_ri_sorted["pct_ocupacion"] * 100,
-            y=df_ri_sorted["nombre"],
-            orientation="h",
-            text=(df_ri_sorted["pct_ocupacion"] * 100).round(1).astype(str) + "%",
-            textposition="outside",
-            marker_color=df_ri_sorted["color"],
-            hovertemplate="<b>%{y}</b><br>Ocupación: %{x:.1f}%<extra></extra>",
+        fig_ri = go.Figure(_lollipop_traces(
+            df_ri_sorted["nombre"].tolist(),
+            (df_ri_sorted["pct_ocupacion"] * 100).tolist(),
+            df_ri_sorted["color"].tolist(),
+            suffix="%",
         ))
-        fig_ri.add_vline(x=70, line_dash="dash", line_color=C_TEXT_SEC,
+        fig_ri.add_vline(x=70, line_dash="dash", line_color=C_BORDER_MID,
                          annotation_text="meta 70%", annotation_position="top right",
                          annotation_font_color=C_TEXT_SEC)
         fig_ri.update_layout(
-            xaxis=dict(title="% Ocupación", ticksuffix="%", range=[0, 118],
-                       gridcolor=C_BORDER, zerolinecolor=C_BORDER,
-                       tickfont=dict(color=C_TEXT), title_font=dict(color=C_TEXT)),
-            yaxis=dict(title="", tickfont=dict(size=12, color=C_TEXT)),
-            **_chart_layout(max(320, len(df_ri_sorted) * 40)),
+            xaxis=dict(title="% Ocupación", ticksuffix="%", range=[0, 130],
+                       gridcolor=C_BORDER, zerolinecolor=C_BORDER_MID,
+                       tickfont=dict(color=C_TEXT_SEC), title_font=dict(color=C_TEXT_SEC)),
+            yaxis=dict(title="", tickfont=dict(size=12, color=C_TEXT_SEC)),
+            **_chart_layout(max(320, len(df_ri_sorted) * 44)),
         )
         st.plotly_chart(fig_ri, use_container_width=True)
 
@@ -529,18 +530,18 @@ with tab_ind:
             )
             df_ri_c = df_ri_ant.sort_values("delta", ascending=True).copy()
             df_ri_c["color"] = df_ri_c["delta"].apply(
-                lambda x: C_GREEN if x > 0.01 else (C_RED_SOFT if x < -0.01 else C_BORDER)
+                lambda x: C_GREEN if x > 0.01 else (C_RED_SOFT if x < -0.01 else C_BORDER_MID)
             )
-            df_ri_c["label"] = df_ri_c["delta"].apply(
-                lambda x: f"+{x*100:.1f}pp" if x >= 0 else f"{x*100:.1f}pp"
-            )
-            fig_rc = go.Figure(go.Bar(
-                x=df_ri_c["delta"] * 100,
-                y=df_ri_c["nombre"],
-                orientation="h",
-                text=df_ri_c["label"],
-                textposition="outside",
-                marker_color=df_ri_c["color"],
+            delta_ri  = (df_ri_c["delta"] * 100).tolist()
+            names_ri  = df_ri_c["nombre"].tolist()
+            colors_ri = df_ri_c["color"].tolist()
+
+            fig_rc = go.Figure(_lollipop_traces(names_ri, delta_ri, colors_ri, suffix="pp"))
+            fig_rc.add_trace(go.Scatter(
+                x=delta_ri,
+                y=names_ri,
+                mode="markers",
+                marker=dict(opacity=0, size=16),
                 customdata=list(zip(
                     (df_ri_c["pct_actual"] * 100).round(1).astype(str) + "%",
                     (df_ri_c["pct_anterior"] * 100).round(1).astype(str) + "%",
@@ -551,13 +552,14 @@ with tab_ind:
                     f"{prev_label}: %{{customdata[1]}}<br>"
                     "Δ: %{x:.1f}pp<extra></extra>"
                 ),
+                showlegend=False,
             ))
             fig_rc.update_layout(
                 xaxis=dict(title="Δ puntos porcentuales", ticksuffix="pp",
                            zeroline=True, zerolinecolor=C_TEXT_SEC, gridcolor=C_BORDER,
-                           tickfont=dict(color=C_TEXT), title_font=dict(color=C_TEXT)),
-                yaxis=dict(title="", tickfont=dict(size=12, color=C_TEXT)),
-                **_chart_layout(max(320, len(df_ri_c) * 40)),
+                           tickfont=dict(color=C_TEXT_SEC), title_font=dict(color=C_TEXT_SEC)),
+                yaxis=dict(title="", tickfont=dict(size=12, color=C_TEXT_SEC)),
+                **_chart_layout(max(320, len(df_ri_c) * 44)),
             )
             st.plotly_chart(fig_rc, use_container_width=True)
 
